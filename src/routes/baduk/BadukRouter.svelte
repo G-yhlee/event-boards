@@ -41,11 +41,16 @@
 
 <style>
   .baduk-app {
-    min-height: 100vh;
+    height: 100vh;
     background: linear-gradient(135deg, #8B4513 0%, #D2B48C 50%, #F5DEB3 100%);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
   
   .content {
-    min-height: calc(100vh - 80px);
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
   }
 </style>

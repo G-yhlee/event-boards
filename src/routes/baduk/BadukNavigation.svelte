@@ -55,7 +55,7 @@
     padding: 1rem 0;
     position: sticky;
     top: 0;
-    z-index: 50;
+    z-index: 200;
     box-shadow: 0 2px 10px rgba(139, 69, 19, 0.1);
   }
   

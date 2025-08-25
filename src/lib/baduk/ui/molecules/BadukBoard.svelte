@@ -25,30 +25,104 @@
     currentTheme = theme;
   });
   
-  const cellSize = boardSize === 19 ? 26 : boardSize === 13 ? 34 : 42;
+  // Throttle helper function
+  const throttle = (func: Function, delay: number) => {
+    let timeoutId: number | undefined;
+    let lastExecTime = 0;
+    return (...args: any[]) => {
+      const currentTime = Date.now();
+      
+      if (currentTime - lastExecTime > delay) {
+        func(...args);
+        lastExecTime = currentTime;
+      } else {
+        clearTimeout(timeoutId);
+        timeoutId = window.setTimeout(() => {
+          func(...args);
+          lastExecTime = Date.now();
+        }, delay - (currentTime - lastExecTime));
+      }
+    };
+  };
+  
+  // 컨테이너 크기에 맞춰 동적으로 셀 크기 계산 (최대 크기)
+  let boardContainer = $state<HTMLDivElement>();
+  let cellSize = $state(30);
+  
+  $effect(() => {
+    if (typeof window !== 'undefined') {
+      const updateCellSize = () => {
+        let availableWidth;
+        // 화면 크기에 따라 패널 크기 조정
+        if (window.innerWidth <= 768) {
+          availableWidth = window.innerWidth - 120; // 모바일: 축소된 패널
+        } else if (window.innerWidth <= 1200) {
+          availableWidth = window.innerWidth - 600; // 태블릿
+        } else {
+          availableWidth = window.innerWidth - 660; // 데스크탑
+        }
+        
+        // Calculate header height dynamically
+        const headerHeight = document.querySelector('.baduk-nav')?.getBoundingClientRect().height || 80;
+        const availableHeight = window.innerHeight - headerHeight - 40; // 40px for padding
+        
+        const maxBoardSize = Math.min(availableWidth, availableHeight);
+        const newCellSize = Math.floor(maxBoardSize / boardSize);
+        // 최소/최대 크기 제한
+        const clampedCellSize = Math.max(18, Math.min(newCellSize, 45));
+        
+        // Only update if there's a significant change to avoid unnecessary re-renders
+        if (Math.abs(clampedCellSize - cellSize) > 1) {
+          cellSize = clampedCellSize;
+        }
+      };
+      
+      // Throttled resize handler to improve performance
+      const throttledUpdateCellSize = throttle(updateCellSize, 100);
+      
+      updateCellSize();
+      window.addEventListener('resize', throttledUpdateCellSize);
+      
+      return () => {
+        window.removeEventListener('resize', throttledUpdateCellSize);
+      };
+    }
+  });
   
   const isLastMove = (x: number, y: number): boolean => {
     return lastMovePosition ? lastMovePosition.x === x && lastMovePosition.y === y : false;
   };
   
-  const getTerritoryOwner = (x: number, y: number): string | null => {
+  // Memoized territory map for O(1) lookup instead of O(n*m)
+  let territoryMap = $derived.by(() => {
+    const map = new Map<string, string>();
     for (const territory of territories) {
-      if (territory.positions.some(pos => pos.x === x && pos.y === y)) {
-        return territory.owner;
+      for (const pos of territory.positions) {
+        map.set(`${pos.x},${pos.y}`, territory.owner);
       }
     }
-    return null;
+    return map;
+  });
+  
+  const getTerritoryOwner = (x: number, y: number): string | null => {
+    return territoryMap.get(`${x},${y}`) || null;
   };
   
-  const isStarPoint = (x: number, y: number): boolean => {
+  // Memoized star points for better performance
+  let starPoints = $derived.by(() => {
+    const points = new Set<string>();
     if (boardSize === 19) {
-      return (x === 3 || x === 9 || x === 15) && (y === 3 || y === 9 || y === 15);
+      [3, 9, 15].forEach(x => [3, 9, 15].forEach(y => points.add(`${x},${y}`)));
     } else if (boardSize === 13) {
-      return (x === 3 || x === 6 || x === 9) && (y === 3 || y === 6 || y === 9);
+      [3, 6, 9].forEach(x => [3, 6, 9].forEach(y => points.add(`${x},${y}`)));
     } else if (boardSize === 9) {
-      return (x === 2 || x === 4 || x === 6) && (y === 2 || y === 4 || y === 6);
+      [2, 4, 6].forEach(x => [2, 4, 6].forEach(y => points.add(`${x},${y}`)));
     }
-    return false;
+    return points;
+  });
+  
+  const isStarPoint = (x: number, y: number): boolean => {
+    return starPoints.has(`${x},${y}`);
   };
 </script>
 
@@ -62,6 +136,7 @@
       <div class="frame-corner bottom-right"></div>
       
       <div 
+        bind:this={boardContainer}
         class="mokwha-jadan-board" 
         style="
           --board-size: {boardSize}; 
@@ -114,7 +189,9 @@
         <div class="intersections-grid">
           {#each Array(boardSize) as _, y}
             {#each Array(boardSize) as _, x}
+              {@const stone = board[y][x]}
               {@const territoryOwner = getTerritoryOwner(x, y)}
+              {@const isLast = isLastMove(x, y)}
               <div 
                 class="intersection-cell"
                 class:territory-black={territoryOwner === 'black'}
@@ -126,10 +203,10 @@
                 "
               >
                 <Stone 
-                  stone={board[y][x]}
+                  stone={stone}
                   position={{ x, y }}
                   onClick={onIntersectionClick}
-                  isLastMove={isLastMove(x, y)}
+                  isLastMove={isLast}
                   boardSize={boardSize}
                   theme={currentTheme}
                 />
@@ -144,6 +221,7 @@
   <!-- 현대적 테마 -->
   <div class="modern-board-container">
     <div 
+      bind:this={boardContainer}
       class="modern-board" 
       style="
         --board-size: {boardSize}; 
@@ -194,7 +272,9 @@
       <div class="intersections-grid">
         {#each Array(boardSize) as _, y}
           {#each Array(boardSize) as _, x}
+            {@const stone = board[y][x]}
             {@const territoryOwner = getTerritoryOwner(x, y)}
+            {@const isLast = isLastMove(x, y)}
             <div 
               class="intersection-cell"
               class:territory-black={territoryOwner === 'black'}
@@ -206,10 +286,10 @@
               "
             >
               <Stone 
-                stone={board[y][x]}
+                stone={stone}
                 position={{ x, y }}
                 onClick={onIntersectionClick}
-                isLastMove={isLastMove(x, y)}
+                isLastMove={isLast}
                 boardSize={boardSize}
                 theme={currentTheme}
               />
@@ -227,14 +307,15 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 3rem;
+    padding: 20px;
     background: radial-gradient(ellipse at center, #2D1810 0%, #1A0F0A 70%);
-    min-height: 100vh;
+    width: 100%;
+    height: 100%;
   }
   
   .traditional-frame {
     position: relative;
-    padding: 2rem;
+    padding: 1rem;
     background: linear-gradient(145deg, #4A2C17 0%, #3B1F0F 50%, #2D1810 100%);
     border-radius: 2px;
     box-shadow: 
@@ -362,7 +443,9 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 2rem;
+    padding: 20px;
+    width: 100%;
+    height: 100%;
   }
   
   .modern-board {

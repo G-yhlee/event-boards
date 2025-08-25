@@ -1,11 +1,7 @@
 <script lang="ts">
   import BadukBoard from '../molecules/BadukBoard.svelte';
-  import GameStatus from '../molecules/GameStatus.svelte';
-  import GameControls from '../organisms/GameControls.svelte';
-  import ThemeSelector from '../molecules/ThemeSelector.svelte';
-  import EventList from '$lib/tictactoe/ui/molecules/EventList.svelte';
-  import TimelineSelector from '$lib/tictactoe/ui/organisms/TimelineSelector.svelte';
-  import TimeTravel from '$lib/tictactoe/ui/organisms/TimeTravel.svelte';
+  import LeftPanel from '../organisms/LeftPanel.svelte';
+  import RightPanel from '../organisms/RightPanel.svelte';
   import { BranchingEventStore, type Timeline } from '$lib/shared/infrastructure/event-store/BranchingEventStore';
   import { BadukCommandHandler, type StartGameCommand, type PlaceStoneCommand, type PassCommand, type ResignCommand } from '$lib/baduk/domain/commands/BadukCommandHandler';
   import { BadukAggregate, type GameState } from '$lib/baduk/domain/aggregates/BadukAggregate';
@@ -42,13 +38,16 @@
   let lastMovePosition = $state<Position | undefined>(undefined);
   
   eventStore.subscribe((event) => {
-    events = eventStore.getAllEvents();
-    currentEventIndex = events.length - 1;
+    const allEvents = eventStore.getAllEvents();
+    // Only update if events array actually changed
+    if (events.length !== allEvents.length) {
+      events = allEvents;
+      currentEventIndex = events.length - 1;
+    }
     
     // Track last move position for visual indication
-    const lastEvent = events[events.length - 1];
-    if (lastEvent?.eventType === 'StonePlaced') {
-      lastMovePosition = (lastEvent.payload as any).position;
+    if (event?.eventType === 'StonePlaced') {
+      lastMovePosition = (event.payload as any).position;
     }
   });
   
@@ -58,7 +57,16 @@
     updateBranches();
   });
   
+  let lastTimelinesHash = $state('');
+  
   const updateBranches = () => {
+    // Create a hash of timelines to detect changes
+    const timelinesHash = timelines.map(t => `${t.id}-${t.branchPoint}`).join('|');
+    
+    // Only update if timelines actually changed
+    if (timelinesHash === lastTimelinesHash) return;
+    lastTimelinesHash = timelinesHash;
+    
     const branchMap = new Map<number, number>();
     timelines.forEach(timeline => {
       if (timeline.branchPoint !== undefined) {
@@ -113,7 +121,6 @@
       gameState = newState;
     } catch (error) {
       console.error('Move error:', error instanceof Error ? error.message : error);
-      // You might want to show this error to the user
     }
   };
   
@@ -153,6 +160,8 @@
     branches = [];
     currentBranchPoint = undefined;
     lastMovePosition = undefined;
+    lastReplayEventIndex = -2;
+    lastTimelinesHash = '';
     gameState = {
       id: gameId,
       boardSize: 19,
@@ -170,18 +179,30 @@
   };
   
   const handleEventClick = async (eventIndex: number) => {
+    console.log('Event clicked:', eventIndex);
     await handleReplayToEvent(eventIndex);
   };
   
+  let lastReplayEventIndex = $state(-2); // Track last replayed index to avoid unnecessary work
+  
   const handleReplayToEvent = async (eventIndex: number) => {
+    console.log('Replaying to event:', eventIndex, 'events.length:', events.length);
     if (eventIndex < -1 || eventIndex >= events.length) return;
+    
+    // Avoid replaying to the same position
+    if (eventIndex === lastReplayEventIndex) {
+      console.log('Same position, skipping replay');
+      return;
+    }
     
     isReplaying = true;
     currentEventIndex = eventIndex;
+    lastReplayEventIndex = eventIndex;
     
     const aggregate = new BadukAggregate(gameId);
     if (eventIndex >= 0) {
       const eventsToReplay = events.slice(0, eventIndex + 1);
+      console.log('Replaying events:', eventsToReplay.length, 'events');
       aggregate.loadFromHistory(eventsToReplay);
       
       // Update last move position
@@ -192,9 +213,13 @@
         lastMovePosition = undefined;
       }
     } else {
+      // Reset to initial state
       lastMovePosition = undefined;
     }
-    gameState = aggregate.getState();
+    
+    const newState = aggregate.getState();
+    console.log('New game state:', newState);
+    gameState = newState;
     
     isReplaying = false;
   };
@@ -223,119 +248,164 @@
     timelines = eventStore.getAllTimelines();
     currentTimelineId = eventStore.getCurrentTimelineId();
     updateBranches();
+    
+    // Set header height CSS variable for proper sizing
+    const setHeaderHeight = () => {
+      const headerHeight = document.querySelector('.baduk-nav')?.getBoundingClientRect().height || 80;
+      document.documentElement.style.setProperty('--header-height', `${headerHeight}px`);
+    };
+    
+    setHeaderHeight();
+    // Update header height on resize
+    window.addEventListener('resize', setHeaderHeight);
+    
+    return () => {
+      window.removeEventListener('resize', setHeaderHeight);
+    };
   });
 </script>
 
-<div class="baduk-game">
-  <div class="game-area">
-    <h1>⚫⚪ Baduk (Go) - Event Sourcing</h1>
-    
-    <ThemeSelector />
-    
-    <GameStatus
-      currentPlayer={gameState.currentPlayer}
-      status={gameState.status}
-      winner={gameState.winner}
-      consecutivePasses={gameState.consecutivePasses}
-      capturedStones={gameState.capturedStones}
-      komi={gameState.komi}
-      boardSize={gameState.boardSize}
-    />
-    
-    <BadukBoard
-      board={gameState.board}
-      boardSize={gameState.boardSize}
-      onIntersectionClick={handleIntersectionClick}
-      {lastMovePosition}
-      territories={gameState.territories}
-    />
-    
-    <GameControls
-      onStartGame={handleStartGame}
-      onPass={handlePass}
-      onResign={handleResign}
-      onNewGame={handleNewGame}
-      status={gameState.status}
-      currentPlayer={gameState.currentPlayer}
-    />
+<div class="full-screen-layout">
+  <!-- 좌측 설정 패널 -->
+  <LeftPanel 
+    onStartGame={handleStartGame}
+    onPass={handlePass}
+    onResign={handleResign}
+    onNewGame={handleNewGame}
+    status={gameState.status}
+    currentPlayer={gameState.currentPlayer}
+  />
+  
+  <!-- 중앙 게임 영역 -->
+  <div class="center-area">
+    <div class="board-container">
+      <BadukBoard
+        board={gameState.board}
+        boardSize={gameState.boardSize}
+        onIntersectionClick={handleIntersectionClick}
+        {lastMovePosition}
+        territories={gameState.territories}
+      />
+    </div>
   </div>
   
-  <div class="sidebar">
-    <TimelineSelector
-      {timelines}
-      {currentTimelineId}
-      onSelectTimeline={handleSelectTimeline}
-    />
-    <EventList 
-      {events}
-      {currentEventIndex}
-      onEventClick={handleEventClick}
-      {branches}
-      {currentBranchPoint}
-    />
-    <TimeTravel 
-      {events}
-      bind:currentEventIndex
-      onReplayToEvent={handleReplayToEvent}
-      {isReplaying}
-    />
-  </div>
+  <!-- 우측 상태 패널 -->
+  <RightPanel 
+    currentPlayer={gameState.currentPlayer}
+    status={gameState.status}
+    winner={gameState.winner}
+    consecutivePasses={gameState.consecutivePasses}
+    capturedStones={gameState.capturedStones}
+    komi={gameState.komi}
+    boardSize={gameState.boardSize}
+    {events}
+    {currentEventIndex}
+    onEventClick={handleEventClick}
+    {branches}
+    {currentBranchPoint}
+    {timelines}
+    {currentTimelineId}
+    onSelectTimeline={handleSelectTimeline}
+    onReplayToEvent={handleReplayToEvent}
+    {isReplaying}
+  />
 </div>
 
 <style>
-  .baduk-game {
+  .full-screen-layout {
+    width: 100vw;
+    height: 100vh;
+    background: #fafafa;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     display: flex;
-    gap: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem;
-    min-height: calc(100vh - 80px);
+    position: relative;
+    overflow: hidden;
   }
   
-  .game-area {
+  .center-area {
+    flex: 1;
+    margin-left: 300px;
+    margin-right: 360px;
+    height: calc(100vh - var(--header-height, 80px));
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    transition: all 0.3s ease;
+  }
+  
+  .board-container {
     flex: 1;
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    background: #fafafa;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
   }
   
-  .game-area h1 {
-    text-align: center;
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 2rem;
-    background: linear-gradient(135deg, #1f2937, #4b5563);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  .sidebar {
-    width: 350px;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  /* 반응형 디자인 */
+  @media (max-width: 1400px) {
+    .center-area {
+      min-width: 600px;
+    }
   }
   
   @media (max-width: 1200px) {
-    .baduk-game {
-      flex-direction: column;
+    .game-header {
+      padding: 1.5rem;
     }
     
-    .sidebar {
-      width: 100%;
-      order: -1;
+    .logo h1 {
+      font-size: 2rem;
+    }
+    
+    .game-title h2 {
+      font-size: 1.25rem;
+    }
+  }
+  
+  @media (max-width: 1200px) {
+    .center-area {
+      margin-left: 280px;
+      margin-right: 320px;
     }
   }
   
   @media (max-width: 768px) {
-    .baduk-game {
-      padding: 1rem;
-      gap: 1rem;
+    .center-area {
+      margin-left: 60px;
+      margin-right: 60px;
     }
     
-    .game-area h1 {
-      font-size: 1.5rem;
+    .game-header {
+      padding: 1rem;
+    }
+    
+    .logo {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .logo h1 {
+      font-size: 1.75rem;
+    }
+    
+    .game-title h2 {
+      font-size: 1.125rem;
+    }
+    
+    .board-container {
+      padding: 1rem;
+    }
+  }
+  
+  /* 다크모드에서도 잘 보이도록 */
+  @media (prefers-color-scheme: dark) {
+    .saas-layout {
+      background: #0f172a;
     }
   }
 </style>
