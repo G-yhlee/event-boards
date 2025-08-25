@@ -3,6 +3,9 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 
 export default defineConfig({
   plugins: [svelte()],
+  build: {
+    outDir: 'public'
+  },
   resolve: {
     alias: {
       '$lib': '/src/lib',
