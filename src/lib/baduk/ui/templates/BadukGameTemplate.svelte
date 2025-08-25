@@ -2,6 +2,7 @@
   import BadukBoard from '../molecules/BadukBoard.svelte';
   import GameStatus from '../molecules/GameStatus.svelte';
   import GameControls from '../organisms/GameControls.svelte';
+  import ThemeSelector from '../molecules/ThemeSelector.svelte';
   import EventList from '$lib/tictactoe/ui/molecules/EventList.svelte';
   import TimelineSelector from '$lib/tictactoe/ui/organisms/TimelineSelector.svelte';
   import TimeTravel from '$lib/tictactoe/ui/organisms/TimeTravel.svelte';
@@ -228,6 +229,8 @@
 <div class="baduk-game">
   <div class="game-area">
     <h1>⚫⚪ Baduk (Go) - Event Sourcing</h1>
+    
+    <ThemeSelector />
     
     <GameStatus
       currentPlayer={gameState.currentPlayer}
