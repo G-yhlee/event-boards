@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Player } from '$lib/domain/events/GameEvents';
+  import type { Player } from '$lib/tictactoe/domain/events/GameEvents';
   
   interface Props {
     value?: Player | null;

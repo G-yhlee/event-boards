@@ -1,5 +1,5 @@
 import { GameAggregate, type GameState } from '../aggregates/GameAggregate';
-import type { EventStore } from '$lib/infrastructure/event-store/EventStore';
+import type { EventStore } from '$lib/shared/infrastructure/event-store/EventStore';
 import type { Player } from '../events/GameEvents';
 
 export interface Command {

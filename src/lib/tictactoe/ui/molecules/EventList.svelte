@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { DomainEvent } from '$lib/domain/events/base';
+  import type { DomainEvent } from '$lib/tictactoe/domain/events/base';
   
   interface Props {
     events?: DomainEvent[];

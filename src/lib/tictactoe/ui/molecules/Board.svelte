@@ -1,6 +1,6 @@
 <script lang="ts">
   import Cell from '../atoms/Cell.svelte';
-  import type { Board } from '$lib/domain/events/GameEvents';
+  import type { Board } from '$lib/tictactoe/domain/events/GameEvents';
   
   interface Props {
     board?: Board;

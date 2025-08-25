@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Player } from '$lib/domain/events/GameEvents';
-  import type { GameStatus } from '$lib/domain/aggregates/GameAggregate';
+  import type { Player } from '$lib/tictactoe/domain/events/GameEvents';
+  import type { GameStatus } from '$lib/tictactoe/domain/aggregates/GameAggregate';
   
   interface Props {
     currentPlayer: Player | null;

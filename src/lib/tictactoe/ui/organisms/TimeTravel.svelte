@@ -1,6 +1,6 @@
 <script lang="ts">
   import Button from '../atoms/Button.svelte';
-  import type { DomainEvent } from '$lib/domain/events/base';
+  import type { DomainEvent } from '$lib/tictactoe/domain/events/base';
   
   interface Props {
     events?: DomainEvent[];

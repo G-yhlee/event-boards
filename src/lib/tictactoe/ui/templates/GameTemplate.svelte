@@ -5,11 +5,11 @@
   import EventList from '../molecules/EventList.svelte';
   import TimeTravel from '../organisms/TimeTravel.svelte';
   import TimelineSelector from '../organisms/TimelineSelector.svelte';
-  import { BranchingEventStore, type Timeline } from '$lib/infrastructure/event-store/BranchingEventStore';
-  import { GameCommandHandler, type StartGameCommand, type MakeMoveCommand } from '$lib/domain/commands/GameCommandHandler';
-  import { GameAggregate, type GameState } from '$lib/domain/aggregates/GameAggregate';
-  import type { DomainEvent } from '$lib/domain/events/base';
-  import type { Board, Player } from '$lib/domain/events/GameEvents';
+  import { BranchingEventStore, type Timeline } from '$lib/shared/infrastructure/event-store/BranchingEventStore';
+  import { GameCommandHandler, type StartGameCommand, type MakeMoveCommand } from '$lib/tictactoe/domain/commands/GameCommandHandler';
+  import { GameAggregate, type GameState } from '$lib/tictactoe/domain/aggregates/GameAggregate';
+  import type { DomainEvent } from '$lib/tictactoe/domain/events/base';
+  import type { Board, Player } from '$lib/tictactoe/domain/events/GameEvents';
   import { onMount } from 'svelte';
   
   const eventStore = new BranchingEventStore();

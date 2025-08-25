@@ -1,4 +1,4 @@
-import type { DomainEvent } from '$lib/domain/events/base';
+import type { DomainEvent } from '$lib/baduk/domain/events/base';
 
 export abstract class AggregateRoot {
   protected id: string;
