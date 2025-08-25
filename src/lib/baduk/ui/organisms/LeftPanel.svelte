@@ -3,13 +3,15 @@
   import ThemeSelector from '../molecules/ThemeSelector.svelte';
   import GameControls from './GameControls.svelte';
   import type { BoardSize, Player } from '$lib/baduk/domain/events/BadukEvents';
+  import type { GameStatus } from '$lib/baduk/domain/aggregates/BadukAggregate';
+  import { onMount } from 'svelte';
   
   interface Props {
     onStartGame: (config: { boardSize: BoardSize; handicap: number; komi: number }) => Promise<void>;
     onPass: () => Promise<void>;
     onResign: () => Promise<void>;
     onNewGame: () => Promise<void>;
-    status: string;
+    status: GameStatus;
     currentPlayer: Player;
   }
   
@@ -30,6 +32,12 @@
     if (isPanelExpanded) {
       quickActionMode = null;
     }
+    updatePanelWidth();
+  };
+  
+  const updatePanelWidth = () => {
+    const width = isPanelExpanded ? 300 : 64;
+    document.documentElement.style.setProperty('--left-panel-width', `${width}px`);
   };
   
   const handleQuickAction = (mode: 'theme' | 'controls') => {
@@ -39,6 +47,15 @@
       quickActionMode = mode;
     }
   };
+
+  const handleStartGameWithPopupClose = async (config: { boardSize: BoardSize; handicap: number; komi: number }) => {
+    await onStartGame(config);
+    quickActionMode = null; // Close the popup after starting game
+  };
+  
+  onMount(() => {
+    updatePanelWidth();
+  });
 </script>
 
 <div class="left-panel" class:expanded={isPanelExpanded} class:collapsed={!isPanelExpanded}>
@@ -175,7 +192,7 @@
         <div class="popup-content">
           <h4><Gamepad2 size={16} /> Controls</h4>
           <GameControls
-            {onStartGame}
+            onStartGame={handleStartGameWithPopupClose}
             {onPass}
             {onResign}
             {onNewGame}
@@ -506,7 +523,7 @@
   .quick-popup {
     position: fixed;
     left: 76px;
-    top: var(--header-height, 80px);
+    top: calc(var(--header-height, 80px) + 20px);
     background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
     border: 1px solid rgba(139, 69, 19, 0.15);
     border-radius: 16px;
@@ -515,9 +532,11 @@
       0 8px 16px rgba(0, 0, 0, 0.06),
       inset 0 1px 0 rgba(255, 255, 255, 0.8);
     z-index: 150;
-    min-width: 320px;
-    max-height: calc(100vh - var(--header-height, 80px) - 40px);
-    overflow: hidden;
+    min-width: 400px;
+    width: auto;
+    max-width: 500px;
+    max-height: calc(100vh - var(--header-height, 80px) - 80px);
+    overflow: visible;
     opacity: 0;
     transform: translateX(-10px) translateY(-10px);
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -537,7 +556,9 @@
     border-radius: 16px;
     position: relative;
     overflow-y: auto;
-    max-height: calc(100vh - var(--header-height, 80px) - 80px);
+    max-height: calc(100vh - var(--header-height, 80px) - 120px);
+    min-width: 350px;
+    min-height: fit-content;
   }
   
   .popup-content::before {
@@ -589,7 +610,16 @@
     
     .quick-popup {
       left: 68px;
-      min-width: 260px;
+      min-width: 320px;
+      max-width: calc(100vw - 80px);
+      top: calc(var(--header-height, 80px) + 10px);
+      max-height: calc(100vh - var(--header-height, 80px) - 60px);
+    }
+    
+    .popup-content {
+      min-width: 300px;
+      padding: 20px;
+      max-height: calc(100vh - var(--header-height, 80px) - 100px);
     }
     
     .quick-action-btn {

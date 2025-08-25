@@ -324,8 +324,8 @@
   
   .center-area {
     flex: 1;
-    margin-left: 300px;
-    margin-right: 360px;
+    margin-left: var(--left-panel-width, 300px);
+    margin-right: var(--right-panel-width, 360px);
     height: calc(100vh - var(--header-height, 80px));
     display: flex;
     flex-direction: column;
@@ -369,15 +369,15 @@
   
   @media (max-width: 1200px) {
     .center-area {
-      margin-left: 280px;
-      margin-right: 320px;
+      margin-left: var(--left-panel-width, 280px);
+      margin-right: var(--right-panel-width, 320px);
     }
   }
   
   @media (max-width: 768px) {
     .center-area {
-      margin-left: 60px;
-      margin-right: 60px;
+      margin-left: var(--left-panel-width, 60px);
+      margin-right: var(--right-panel-width, 60px);
     }
     
     .game-header {
