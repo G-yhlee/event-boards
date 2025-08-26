@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Stone } from '$lib/baduk/domain/events/BadukEvents';
   import type { StoneConfig } from '../stores/themeStore';
+  import type { CustomStoneConfig } from '../stores/customStoneStore';
   
   interface Props {
     stone?: Stone | null;
@@ -9,6 +10,8 @@
     isLastMove?: boolean;
     blackStoneConfig?: StoneConfig;
     whiteStoneConfig?: StoneConfig;
+    customBlackStoneConfig?: CustomStoneConfig;
+    customWhiteStoneConfig?: CustomStoneConfig;
   }
   
   let { 
@@ -17,20 +20,29 @@
     onClick, 
     isLastMove = false,
     blackStoneConfig,
-    whiteStoneConfig
+    whiteStoneConfig,
+    customBlackStoneConfig,
+    customWhiteStoneConfig
   }: Props = $props();
   
-  // Select the appropriate config based on stone color
+  // Select the appropriate config based on stone color (prioritize custom stones)
   let stoneConfig = $derived(
-    stone === 'black' ? blackStoneConfig : 
-    stone === 'white' ? whiteStoneConfig : 
+    stone === 'black' ? (customBlackStoneConfig || blackStoneConfig) : 
+    stone === 'white' ? (customWhiteStoneConfig || whiteStoneConfig) : 
     null
   );
   
   // Get shape configuration
   let stoneShapeConfig = $derived(
-    stone === 'black' ? blackStoneConfig?.black : 
-    stone === 'white' ? whiteStoneConfig?.white : 
+    stone === 'black' ? (customBlackStoneConfig?.black || blackStoneConfig?.black) : 
+    stone === 'white' ? (customWhiteStoneConfig?.white || whiteStoneConfig?.white) : 
+    null
+  );
+  
+  // Get aura color for custom stones
+  let auraColor = $derived(
+    stone === 'black' ? customBlackStoneConfig?.auraColor :
+    stone === 'white' ? customWhiteStoneConfig?.auraColor :
     null
   );
   
@@ -67,6 +79,7 @@
     --marker-size: {stoneConfig?.lastMoveMarker.size || '6px'};
     --marker-border: {stoneConfig?.lastMoveMarker.border || 'none'};
     --marker-shadow: {stoneConfig?.lastMoveMarker.boxShadow || 'none'};
+    --aura-color: {auraColor || 'transparent'};
   "
 >
   <!-- 바둑돌 -->
@@ -82,6 +95,11 @@
       class:shape-hexagon={currentShape === 'hexagon'}
       class:shape-custom={currentShape === 'custom'}
     >
+      <!-- Aura ring for custom stones -->
+      {#if auraColor && auraColor !== 'transparent'}
+        <div class="aura-ring"></div>
+      {/if}
+      
       <!-- 돌의 이미지 -->
       {#if stoneShapeConfig?.image}
         <div class="stone-image">
@@ -235,6 +253,32 @@
     pointer-events: none;
     color: currentColor;
     opacity: 0.5;
+  }
+  
+  .aura-ring {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    right: -6px;
+    bottom: -6px;
+    border: 3px solid var(--aura-color);
+    border-radius: inherit;
+    opacity: 0.6;
+    z-index: -1;
+    pointer-events: none;
+    box-shadow: 0 0 10px var(--aura-color);
+    animation: aura-pulse 2s ease-in-out infinite alternate;
+  }
+  
+  @keyframes aura-pulse {
+    0% {
+      opacity: 0.4;
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
   }
   
   .last-move-marker {

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Check, Palette, Sparkles, Crown, Zap, Minimize2, Star, Shield, Mountain, Flame, TreePine, Layers, Circle, Hexagon, Bug, Cpu } from 'lucide-svelte';
+  import { Check, Palette, Sparkles, Crown, Zap, Minimize2, Star, Shield, Mountain, Flame, TreePine, Layers, Circle, Hexagon, Bug, Cpu, Plus } from 'lucide-svelte';
   import { 
     blackStoneStyle,
     whiteStoneStyle, 
@@ -12,10 +12,22 @@
     type StoneStyle,
     type BoardBackground 
   } from '../stores/themeStore';
+  import {
+    customStones,
+    selectedCustomBlackStone,
+    selectedCustomWhiteStone,
+    selectCustomBlackStone,
+    selectCustomWhiteStone,
+    openStoneDesigner,
+    type CustomStoneConfig
+  } from '../stores/customStoneStore';
   
   let selectedBlackStoneStyle = $state<StoneStyle>('japanese');
   let selectedWhiteStoneStyle = $state<StoneStyle>('korean');
   let selectedBoardBackground = $state<BoardBackground>('classic');
+  let currentCustomStones = $state<CustomStoneConfig[]>([]);
+  let currentSelectedCustomBlackStone = $state<CustomStoneConfig | null>(null);
+  let currentSelectedCustomWhiteStone = $state<CustomStoneConfig | null>(null);
   
   blackStoneStyle.subscribe(style => {
     selectedBlackStoneStyle = style;
@@ -27,6 +39,18 @@
   
   currentBoardBackground.subscribe(background => {
     selectedBoardBackground = background;
+  });
+  
+  customStones.subscribe(stones => {
+    currentCustomStones = stones;
+  });
+  
+  selectedCustomBlackStone.subscribe(stone => {
+    currentSelectedCustomBlackStone = stone;
+  });
+  
+  selectedCustomWhiteStone.subscribe(stone => {
+    currentSelectedCustomWhiteStone = stone;
   });
   
   const stoneStylesList = [
@@ -384,6 +408,144 @@
       </div>
     </div>
   </div>
+
+  <!-- Custom Stones Section -->
+  {#if currentCustomStones.length > 0}
+    <div class="theme-section">
+      <div class="section-header">
+        <Star size={18} />
+        <h4>Custom Stones</h4>
+        <span class="section-subtitle">맞춤 스톤</span>
+      </div>
+      
+      <div class="custom-stones-preview">
+        <div class="custom-stone-selection">
+          <div class="custom-stone-header">
+            <Circle size={14} fill="#000" stroke="#000" />
+            <span>Black Stone</span>
+            {#if currentSelectedCustomBlackStone}
+              <button 
+                class="clear-selection"
+                onclick={() => selectCustomBlackStone(null)}
+                title="Use default stones"
+              >
+                Clear
+              </button>
+            {/if}
+          </div>
+          <div class="custom-stone-options">
+            {#each currentCustomStones as stone}
+              <button
+                class="custom-stone-option"
+                class:selected={currentSelectedCustomBlackStone?.id === stone.id}
+                onclick={() => selectCustomBlackStone(stone)}
+              >
+                <div 
+                  class="mini-stone black"
+                  class:shape-circle={!stone.black.shape || stone.black.shape === 'circle'}
+                  class:shape-square={stone.black.shape === 'square'}
+                  class:shape-diamond={stone.black.shape === 'diamond'}
+                  class:shape-hexagon={stone.black.shape === 'hexagon'}
+                  class:shape-custom={stone.black.shape === 'custom'}
+                  style="
+                    background: {stone.black.image ? 'rgba(0, 0, 0, 0.1)' : stone.black.background};
+                    border: {stone.black.border};
+                    box-shadow: {stone.black.boxShadow};
+                    --aura-color: {stone.auraColor || 'transparent'};
+                  "
+                >
+                  {#if stone.black.image}
+                    <img src={stone.black.image} alt={stone.name} />
+                  {/if}
+                  {#if stone.auraColor}
+                    <div class="mini-aura-ring"></div>
+                  {/if}
+                </div>
+                <span class="stone-name">{stone.name}</span>
+              </button>
+            {/each}
+          </div>
+        </div>
+        
+        <div class="custom-stone-selection">
+          <div class="custom-stone-header">
+            <Circle size={14} fill="#fff" stroke="#888" />
+            <span>White Stone</span>
+            {#if currentSelectedCustomWhiteStone}
+              <button 
+                class="clear-selection"
+                onclick={() => selectCustomWhiteStone(null)}
+                title="Use default stones"
+              >
+                Clear
+              </button>
+            {/if}
+          </div>
+          <div class="custom-stone-options">
+            {#each currentCustomStones as stone}
+              <button
+                class="custom-stone-option"
+                class:selected={currentSelectedCustomWhiteStone?.id === stone.id}
+                onclick={() => selectCustomWhiteStone(stone)}
+              >
+                <div 
+                  class="mini-stone white"
+                  class:shape-circle={!stone.white.shape || stone.white.shape === 'circle'}
+                  class:shape-square={stone.white.shape === 'square'}
+                  class:shape-diamond={stone.white.shape === 'diamond'}
+                  class:shape-hexagon={stone.white.shape === 'hexagon'}
+                  class:shape-custom={stone.white.shape === 'custom'}
+                  style="
+                    background: {stone.white.image ? 'rgba(255, 255, 255, 0.1)' : stone.white.background};
+                    border: {stone.white.border};
+                    box-shadow: {stone.white.boxShadow};
+                    --aura-color: {stone.auraColor || 'transparent'};
+                  "
+                >
+                  {#if stone.white.image}
+                    <img src={stone.white.image} alt={stone.name} />
+                  {/if}
+                  {#if stone.auraColor}
+                    <div class="mini-aura-ring"></div>
+                  {/if}
+                </div>
+                <span class="stone-name">{stone.name}</span>
+              </button>
+            {/each}
+          </div>
+        </div>
+      </div>
+      
+      <div class="designer-link">
+        <button 
+          class="designer-button"
+          onclick={() => openStoneDesigner()}
+        >
+          <Plus size={16} />
+          Create New Stone
+        </button>
+      </div>
+    </div>
+  {:else}
+    <div class="theme-section">
+      <div class="section-header">
+        <Star size={18} />
+        <h4>Custom Stones</h4>
+        <span class="section-subtitle">맞춤 스톤</span>
+      </div>
+      
+      <div class="empty-custom-stones">
+        <p>No custom stones yet. Create your own unique designs!</p>
+        <button 
+          class="designer-button primary"
+          onclick={() => openStoneDesigner()}
+        >
+          <Plus size={16} />
+          Create Your First Stone
+        </button>
+      </div>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -776,5 +938,190 @@
     .stone-label {
       font-size: 8px;
     }
+  }
+  
+  /* Custom Stones Styles */
+  .custom-stones-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .custom-stone-selection {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  
+  .custom-stone-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .clear-selection {
+    margin-left: auto;
+    background: none;
+    border: 1px solid #ddd;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s;
+  }
+  
+  .clear-selection:hover {
+    border-color: #aaa;
+    color: #333;
+  }
+  
+  .custom-stone-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .custom-stone-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 60px;
+  }
+  
+  .custom-stone-option:hover {
+    border-color: #8B4513;
+    box-shadow: 0 1px 4px rgba(139, 69, 19, 0.2);
+  }
+  
+  .custom-stone-option.selected {
+    border-color: #8B4513;
+    background: rgba(139, 69, 19, 0.1);
+  }
+  
+  .mini-stone {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  
+  .mini-stone img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+  }
+  
+  .mini-aura-ring {
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border: 2px solid var(--aura-color);
+    border-radius: inherit;
+    opacity: 0.6;
+    z-index: -1;
+    pointer-events: none;
+  }
+  
+  .mini-stone.shape-circle,
+  .mini-aura-ring {
+    border-radius: 50%;
+  }
+  
+  .mini-stone.shape-square {
+    border-radius: 15%;
+  }
+  
+  .mini-stone.shape-diamond {
+    border-radius: 20%;
+    transform: rotate(45deg);
+  }
+  
+  .mini-stone.shape-hexagon {
+    border-radius: 10%;
+    clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
+  }
+  
+  .mini-stone.shape-custom {
+    border-radius: 30%;
+    clip-path: ellipse(45% 40% at 50% 50%);
+  }
+  
+  .stone-name {
+    font-size: 0.7rem;
+    color: #555;
+    text-align: center;
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .custom-stone-option.selected .stone-name {
+    color: #8B4513;
+    font-weight: 500;
+  }
+  
+  .designer-link {
+    display: flex;
+    justify-content: center;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+  }
+  
+  .designer-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid #8B4513;
+    border-radius: 6px;
+    background: white;
+    color: #8B4513;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  
+  .designer-button:hover {
+    background: #8B4513;
+    color: white;
+  }
+  
+  .designer-button.primary {
+    background: #8B4513;
+    color: white;
+  }
+  
+  .designer-button.primary:hover {
+    background: #704010;
+  }
+  
+  .empty-custom-stones {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #666;
+  }
+  
+  .empty-custom-stones p {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
   }
 </style>

@@ -10,6 +10,11 @@
     type StoneStyle,
     type BoardBackground 
   } from '../stores/themeStore';
+  import {
+    selectedCustomBlackStone,
+    selectedCustomWhiteStone,
+    type CustomStoneConfig
+  } from '../stores/customStoneStore';
   import { calculateInfluenceMap, getAuraGradient, type InfluenceMap } from '../../utils/influenceMap';
   
   interface Props {
@@ -33,6 +38,8 @@
   let selectedBlackStoneStyle = $state<StoneStyle>('japanese');
   let selectedWhiteStoneStyle = $state<StoneStyle>('korean');
   let selectedBoardBackground = $state<BoardBackground>('classic');
+  let customBlackStone = $state<CustomStoneConfig | null>(null);
+  let customWhiteStone = $state<CustomStoneConfig | null>(null);
   
   let blackStoneConfig = $derived(getStoneConfig(selectedBlackStoneStyle));
   let whiteStoneConfig = $derived(getStoneConfig(selectedWhiteStoneStyle));
@@ -48,6 +55,14 @@
   
   currentBoardBackground.subscribe(background => {
     selectedBoardBackground = background;
+  });
+  
+  selectedCustomBlackStone.subscribe(stone => {
+    customBlackStone = stone;
+  });
+  
+  selectedCustomWhiteStone.subscribe(stone => {
+    customWhiteStone = stone;
   });
   
   // Throttle helper function
@@ -275,6 +290,8 @@
               isLastMove={isLast}
               blackStoneConfig={blackStoneConfig}
               whiteStoneConfig={whiteStoneConfig}
+              customBlackStoneConfig={customBlackStone}
+              customWhiteStoneConfig={customWhiteStone}
             />
           </div>
         {/each}

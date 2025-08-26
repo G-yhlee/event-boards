@@ -43,6 +43,14 @@
       >
         📊 Analysis
       </button>
+      
+      <button 
+        class="nav-link"
+        class:active={route === 'designer'}
+        onclick={() => navigateToBaduk('designer')}
+      >
+        🎨 Designer
+      </button>
     </div>
   </div>
 </nav>
