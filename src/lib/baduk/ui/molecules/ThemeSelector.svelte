@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Check, Palette, Sparkles, Crown, Zap, Minimize2, Star, Shield, Mountain, Flame, TreePine, Users, Layers, Circle } from 'lucide-svelte';
+  import { Check, Palette, Sparkles, Crown, Zap, Minimize2, Star, Shield, Mountain, Flame, TreePine, Layers, Circle, Hexagon, Bug, Cpu } from 'lucide-svelte';
   import { 
     blackStoneStyle,
     whiteStoneStyle, 
@@ -57,6 +57,18 @@
     {
       ...stoneStyles.royal,
       icon: Crown
+    },
+    {
+      ...stoneStyles.protoss,
+      icon: Hexagon
+    },
+    {
+      ...stoneStyles.zerg,
+      icon: Bug
+    },
+    {
+      ...stoneStyles.terran,
+      icon: Cpu
     }
   ];
   
@@ -114,12 +126,29 @@
               <div class="preview-stones">
                 <div 
                   class="preview-stone black"
+                  class:shape-circle={!stoneStyle.black.shape || stoneStyle.black.shape === 'circle'}
+                  class:shape-square={stoneStyle.black.shape === 'square'}
+                  class:shape-diamond={stoneStyle.black.shape === 'diamond'}
+                  class:shape-hexagon={stoneStyle.black.shape === 'hexagon'}
+                  class:shape-custom={stoneStyle.black.shape === 'custom'}
                   style="
-                    background: {stoneStyle.black.background};
+                    background: {stoneStyle.black.image ? 'rgba(0, 0, 0, 0.1)' : stoneStyle.black.background};
                     border: {stoneStyle.black.border};
                     box-shadow: {stoneStyle.black.boxShadow};
                   "
-                ></div>
+                >
+                  {#if stoneStyle.black.image}
+                    <img 
+                      src={stoneStyle.black.image} 
+                      alt="{stoneStyle.name} black"
+                      class="preview-stone-image"
+                      onerror={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (target) target.style.display = 'none';
+                      }}
+                    />
+                  {/if}
+                </div>
               </div>
             </div>
             {#if selectedBlackStoneStyle === stoneStyle.id}
@@ -164,12 +193,29 @@
               <div class="preview-stones">
                 <div 
                   class="preview-stone white"
+                  class:shape-circle={!stoneStyle.white.shape || stoneStyle.white.shape === 'circle'}
+                  class:shape-square={stoneStyle.white.shape === 'square'}
+                  class:shape-diamond={stoneStyle.white.shape === 'diamond'}
+                  class:shape-hexagon={stoneStyle.white.shape === 'hexagon'}
+                  class:shape-custom={stoneStyle.white.shape === 'custom'}
                   style="
-                    background: {stoneStyle.white.background};
+                    background: {stoneStyle.white.image ? 'rgba(255, 255, 255, 0.1)' : stoneStyle.white.background};
                     border: {stoneStyle.white.border};
                     box-shadow: {stoneStyle.white.boxShadow};
                   "
-                ></div>
+                >
+                  {#if stoneStyle.white.image}
+                    <img 
+                      src={stoneStyle.white.image} 
+                      alt="{stoneStyle.name} white"
+                      class="preview-stone-image"
+                      onerror={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (target) target.style.display = 'none';
+                      }}
+                    />
+                  {/if}
+                </div>
               </div>
             </div>
             {#if selectedWhiteStoneStyle === stoneStyle.id}
@@ -272,23 +318,57 @@
         <!-- Show both black and white stones with their selected styles -->
         <div 
           class="combined-stone black"
+          class:shape-circle={!stoneStyles[selectedBlackStoneStyle].black.shape || stoneStyles[selectedBlackStoneStyle].black.shape === 'circle'}
+          class:shape-square={stoneStyles[selectedBlackStoneStyle].black.shape === 'square'}
+          class:shape-diamond={stoneStyles[selectedBlackStoneStyle].black.shape === 'diamond'}
+          class:shape-hexagon={stoneStyles[selectedBlackStoneStyle].black.shape === 'hexagon'}
+          class:shape-custom={stoneStyles[selectedBlackStoneStyle].black.shape === 'custom'}
           style="
-            background: {stoneStyles[selectedBlackStoneStyle].black.background};
+            background: {stoneStyles[selectedBlackStoneStyle].black.image ? 'rgba(0, 0, 0, 0.1)' : stoneStyles[selectedBlackStoneStyle].black.background};
             border: {stoneStyles[selectedBlackStoneStyle].black.border};
             box-shadow: {stoneStyles[selectedBlackStoneStyle].black.boxShadow};
           "
         >
-          <span class="stone-label">B</span>
+          {#if stoneStyles[selectedBlackStoneStyle].black.image}
+            <img 
+              src={stoneStyles[selectedBlackStoneStyle].black.image} 
+              alt="{stoneStyles[selectedBlackStoneStyle].name} black"
+              class="combined-stone-image"
+              onerror={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (target) target.style.display = 'none';
+              }}
+            />
+          {:else}
+            <span class="stone-label">B</span>
+          {/if}
         </div>
         <div 
           class="combined-stone white"
+          class:shape-circle={!stoneStyles[selectedWhiteStoneStyle].white.shape || stoneStyles[selectedWhiteStoneStyle].white.shape === 'circle'}
+          class:shape-square={stoneStyles[selectedWhiteStoneStyle].white.shape === 'square'}
+          class:shape-diamond={stoneStyles[selectedWhiteStoneStyle].white.shape === 'diamond'}
+          class:shape-hexagon={stoneStyles[selectedWhiteStoneStyle].white.shape === 'hexagon'}
+          class:shape-custom={stoneStyles[selectedWhiteStoneStyle].white.shape === 'custom'}
           style="
-            background: {stoneStyles[selectedWhiteStoneStyle].white.background};
+            background: {stoneStyles[selectedWhiteStoneStyle].white.image ? 'rgba(255, 255, 255, 0.1)' : stoneStyles[selectedWhiteStoneStyle].white.background};
             border: {stoneStyles[selectedWhiteStoneStyle].white.border};
             box-shadow: {stoneStyles[selectedWhiteStoneStyle].white.boxShadow};
           "
         >
-          <span class="stone-label">W</span>
+          {#if stoneStyles[selectedWhiteStoneStyle].white.image}
+            <img 
+              src={stoneStyles[selectedWhiteStoneStyle].white.image} 
+              alt="{stoneStyles[selectedWhiteStoneStyle].name} white"
+              class="combined-stone-image"
+              onerror={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (target) target.style.display = 'none';
+              }}
+            />
+          {:else}
+            <span class="stone-label">W</span>
+          {/if}
         </div>
       </div>
       
@@ -410,7 +490,6 @@
   .preview-stone {
     width: 20px;
     height: 20px;
-    border-radius: 50%;
   }
   
   .preview-stone.black {
@@ -421,6 +500,54 @@
   .preview-stone.white {
     width: 20px;
     height: 20px;
+  }
+  
+  /* Shape variations for preview stones */
+  .preview-stone.shape-circle,
+  .combined-stone.shape-circle {
+    border-radius: 50%;
+  }
+  
+  .preview-stone.shape-square,
+  .combined-stone.shape-square {
+    border-radius: 15%;
+  }
+  
+  .preview-stone.shape-diamond,
+  .combined-stone.shape-diamond {
+    border-radius: 20%;
+    transform: rotate(45deg);
+  }
+  
+  .preview-stone.shape-hexagon,
+  .combined-stone.shape-hexagon {
+    border-radius: 10%;
+    clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
+  }
+  
+  .preview-stone.shape-custom,
+  .combined-stone.shape-custom {
+    border-radius: 30%;
+    clip-path: ellipse(45% 40% at 50% 50%);
+  }
+  
+  /* Stone image styles */
+  .preview-stone-image,
+  .combined-stone-image {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    transition: all 0.3s ease;
+  }
+  
+  .preview-stone,
+  .combined-stone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
   }
   
   .preview-grid {

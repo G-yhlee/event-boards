@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 
 // Stone Styles (Races/Cultures)
-export type StoneStyle = 'korean' | 'japanese' | 'chinese' | 'western' | 'modern' | 'neon' | 'royal';
+export type StoneStyle = 'korean' | 'japanese' | 'chinese' | 'western' | 'modern' | 'neon' | 'royal' | 'protoss' | 'zerg' | 'terran';
 
 // Board Backgrounds (Environments)
 export type BoardBackground = 'classic' | 'modern' | 'neon' | 'vintage' | 'marble' | 'wood' | 'paper';
@@ -14,11 +14,17 @@ export interface StoneConfig {
     background: string;
     border: string;
     boxShadow: string;
+    shape?: 'circle' | 'square' | 'diamond' | 'hexagon' | 'custom';
+    customShape?: string; // SVG path or CSS for custom shapes
+    image?: string; // URL to stone image
   };
   white: {
     background: string;
     border: string;
     boxShadow: string;
+    shape?: 'circle' | 'square' | 'diamond' | 'hexagon' | 'custom';
+    customShape?: string; // SVG path or CSS for custom shapes
+    image?: string; // URL to stone image
   };
   lastMoveMarker: {
     background: string;
@@ -192,6 +198,83 @@ export const stoneStyles: Record<StoneStyle, StoneConfig> = {
       border: '2px solid #8B4513',
       boxShadow: '0 0 20px rgba(255, 215, 0, 0.9), 0 3px 6px rgba(0, 0, 0, 0.5)'
     }
+  },
+  protoss: {
+    id: 'protoss',
+    name: 'Protoss',
+    description: 'For Aiur! Psionic technology',
+    black: {
+      background: 'linear-gradient(145deg, #001122 0%, #003366 50%, #0066CC 100%)',
+      border: '2px solid #00AAFF',
+      boxShadow: '0 4px 16px rgba(0, 170, 255, 0.6), 0 2px 8px rgba(0, 51, 102, 0.8), inset 0 2px 4px rgba(102, 204, 255, 0.3)',
+      shape: 'hexagon',
+      image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDJMNiAxMFYyMkwyNiAyMlYxMEwxNiAyWiIgZmlsbD0iIzAwQUFGRiIgc3Ryb2tlPSIjMDBGRkZGIiBzdHJva2Utd2lkdGg9IjIiLz4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iNCIgZmlsbD0iIzAwRkZGRiIvPgo8L3N2Zz4K'
+    },
+    white: {
+      background: 'linear-gradient(145deg, #FFD700 0%, #FFAA00 50%, #FF6600 100%)',
+      border: '2px solid #FFCC00',
+      boxShadow: '0 4px 16px rgba(255, 204, 0, 0.6), 0 2px 8px rgba(255, 102, 0, 0.8), inset 0 2px 4px rgba(255, 255, 102, 0.4)',
+      shape: 'hexagon',
+      image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDJMNiAxMFYyMkwyNiAyMlYxMEwxNiAyWiIgZmlsbD0iIzAwQUFGRiIgc3Ryb2tlPSIjMDBGRkZGIiBzdHJva2Utd2lkdGg9IjIiLz4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iNCIgZmlsbD0iIzAwRkZGRiIvPgo8L3N2Zz4K'
+    },
+    lastMoveMarker: {
+      background: 'radial-gradient(circle, #00FFFF 0%, #0088FF 100%)',
+      size: '8px',
+      border: '1px solid #FFFFFF',
+      boxShadow: '0 0 15px rgba(0, 255, 255, 0.9), 0 2px 4px rgba(0, 0, 0, 0.4)'
+    }
+  },
+  zerg: {
+    id: 'zerg',
+    name: 'Zerg',
+    description: 'Evolution complete. Organic swarm',
+    black: {
+      background: 'linear-gradient(145deg, #220011 0%, #440022 50%, #663300 100%)',
+      border: '2px solid #AA4400',
+      boxShadow: '0 4px 16px rgba(170, 68, 0, 0.6), 0 2px 8px rgba(68, 0, 34, 0.8), inset 0 2px 4px rgba(255, 102, 0, 0.2)',
+      shape: 'custom',
+      customShape: 'organic',
+      image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDNDMjAgNCAyNSA3IDI4IDEyQzMwIDE2IDI4IDIyIDI0IDI2QzIwIDI5IDE2IDMwIDEyIDI5QzggMjggNCAyNCAyIDE5QzEgMTQgMyAxMCA3IDdDMTAgNSAxMyAzIDE2IDNaIiBmaWxsPSIjQUE0NDAwIiBzdHJva2U9IiNGRjY2MDAiIHN0cm9rZS13aWR0aD0iMiIvPgo8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIzIiBmaWxsPSIjRkY0NDAwIi8+CjxwYXRoIGQ9Ik0xMSAxMUwxNiA5TDIxIDExTDE5IDE2TDE2IDE5TDEzIDE2TDExIDExWiIgZmlsbD0iIzhBRkY4OCIvPgo8L3N2Zz4K'
+    },
+    white: {
+      background: 'linear-gradient(145deg, #66CC66 0%, #44AA44 50%, #228822 100%)',
+      border: '2px solid #88FF88',
+      boxShadow: '0 4px 16px rgba(136, 255, 136, 0.6), 0 2px 8px rgba(34, 136, 34, 0.8), inset 0 2px 4px rgba(204, 255, 204, 0.3)',
+      shape: 'custom',
+      customShape: 'organic',
+      image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDNDMjAgNCAyNSA3IDI4IDEyQzMwIDE2IDI4IDIyIDI0IDI2QzIwIDI5IDE2IDMwIDEyIDI5QzggMjggNCAyNCAyIDE5QzEgMTQgMyAxMCA3IDdDMTAgNSAxMyAzIDE2IDNaIiBmaWxsPSIjQUE0NDAwIiBzdHJva2U9IiNGRjY2MDAiIHN0cm9rZS13aWR0aD0iMiIvPgo8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIzIiBmaWxsPSIjRkY0NDAwIi8+CjxwYXRoIGQ9Ik0xMSAxMUwxNiA5TDIxIDExTDE5IDE2TDE2IDE5TDEzIDE2TDExIDExWiIgZmlsbD0iIzhBRkY4OCIvPgo8L3N2Zz4K'
+    },
+    lastMoveMarker: {
+      background: 'radial-gradient(circle, #FF4400 0%, #AA2200 100%)',
+      size: '9px',
+      border: '1px solid #FFAA44',
+      boxShadow: '0 0 18px rgba(255, 68, 0, 0.8), 0 2px 4px rgba(0, 0, 0, 0.5)'
+    }
+  },
+  terran: {
+    id: 'terran',
+    name: 'Terran',
+    description: 'Lock and load! Human technology',
+    black: {
+      background: 'linear-gradient(145deg, #333333 0%, #555555 50%, #777777 100%)',
+      border: '2px solid #999999',
+      boxShadow: '0 4px 16px rgba(153, 153, 153, 0.6), 0 2px 8px rgba(51, 51, 51, 0.8), inset 0 2px 4px rgba(187, 187, 187, 0.3)',
+      shape: 'square',
+      image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNCIgeT0iOCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjE2IiBmaWxsPSIjOTk5OTk5IiBzdHJva2U9IiNCQkJCQkIiIHN0cm9rZS13aWR0aD0iMiIgcng9IjIiLz4KPHJlY3QgeD0iNiIgeT0iMTAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMiIgZmlsbD0iI0NDQ0NDQyIgcng9IjEiLz4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxNiIgcj0iMiIgZmlsbD0iIzc3Nzc3NyIvPgo8Y2lyY2xlIGN4PSIyMiIgY3k9IjE2IiByPSIyIiBmaWxsPSIjNzc3Nzc3Ii8+CjxyZWN0IHg9IjE0IiB5PSI0IiB3aWR0aD0iNCIgaGVpZ2h0PSI4IiBmaWxsPSIjNTU1NTU1IiBzdHJva2U9IiM3Nzc3NzciIHN0cm9rZS13aWR0aD0iMSIvPgo8L3N2Zz4K'
+    },
+    white: {
+      background: 'linear-gradient(145deg, #CCCCCC 0%, #AAAAAA 50%, #888888 100%)',
+      border: '2px solid #BBBBBB',
+      boxShadow: '0 4px 16px rgba(187, 187, 187, 0.6), 0 2px 8px rgba(136, 136, 136, 0.8), inset 0 2px 4px rgba(238, 238, 238, 0.4)',
+      shape: 'square',
+      image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNCIgeT0iOCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjE2IiBmaWxsPSIjOTk5OTk5IiBzdHJva2U9IiNCQkJCQkIiIHN0cm9rZS13aWR0aD0iMiIgcng9IjIiLz4KPHJlY3QgeD0iNiIgeT0iMTAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMiIgZmlsbD0iI0NDQ0NDQyIgcng9IjEiLz4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxNiIgcj0iMiIgZmlsbD0iIzc3Nzc3NyIvPgo8Y2lyY2xlIGN4PSIyMiIgY3k9IjE2IiByPSIyIiBmaWxsPSIjNzc3Nzc3Ii8+CjxyZWN0IHg9IjE0IiB5PSI0IiB3aWR0aD0iNCIgaGVpZ2h0PSI4IiBmaWxsPSIjNTU1NTU1IiBzdHJva2U9IiM3Nzc3NzciIHN0cm9rZS13aWR0aD0iMSIvPgo8L3N2Zz4K'
+    },
+    lastMoveMarker: {
+      background: 'radial-gradient(circle, #FFFF00 0%, #FFAA00 100%)',
+      size: '7px',
+      border: '1px solid #FFFFFF',
+      boxShadow: '0 0 12px rgba(255, 255, 0, 0.8), 0 2px 4px rgba(0, 0, 0, 0.4)'
+    }
   }
 };
 
@@ -324,7 +407,7 @@ export function getBoardConfig(background: BoardBackground): BoardConfig {
 
 // Cycle through stone styles for black player
 export function toggleBlackStoneStyle() {
-  const styleOrder: StoneStyle[] = ['korean', 'japanese', 'chinese', 'western', 'modern', 'neon', 'royal'];
+  const styleOrder: StoneStyle[] = ['korean', 'japanese', 'chinese', 'western', 'modern', 'neon', 'royal', 'protoss', 'zerg', 'terran'];
   
   blackStoneStyle.update(current => {
     const currentIndex = styleOrder.indexOf(current);
@@ -335,7 +418,7 @@ export function toggleBlackStoneStyle() {
 
 // Cycle through stone styles for white player
 export function toggleWhiteStoneStyle() {
-  const styleOrder: StoneStyle[] = ['korean', 'japanese', 'chinese', 'western', 'modern', 'neon', 'royal'];
+  const styleOrder: StoneStyle[] = ['korean', 'japanese', 'chinese', 'western', 'modern', 'neon', 'royal', 'protoss', 'zerg', 'terran'];
   
   whiteStoneStyle.update(current => {
     const currentIndex = styleOrder.indexOf(current);

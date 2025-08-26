@@ -27,6 +27,21 @@
     null
   );
   
+  // Get shape configuration
+  let stoneShapeConfig = $derived(
+    stone === 'black' ? blackStoneConfig?.black : 
+    stone === 'white' ? whiteStoneConfig?.white : 
+    null
+  );
+  
+  // Determine the shape style
+  let shapeClass = $derived(() => {
+    if (!stoneShapeConfig?.shape) return 'circle';
+    return stoneShapeConfig.shape;
+  });
+  
+  let currentShape = $derived(shapeClass());
+  
   const handleClick = () => {
     if (!stone && onClick) {
       onClick(position);
@@ -61,7 +76,28 @@
       class:black={stone === 'black'}
       class:white={stone === 'white'}
       class:last-move={isLastMove}
+      class:shape-circle={currentShape === 'circle'}
+      class:shape-square={currentShape === 'square'}
+      class:shape-diamond={currentShape === 'diamond'}
+      class:shape-hexagon={currentShape === 'hexagon'}
+      class:shape-custom={currentShape === 'custom'}
     >
+      <!-- 돌의 이미지 -->
+      {#if stoneShapeConfig?.image}
+        <div class="stone-image">
+          <img 
+            src={stoneShapeConfig.image} 
+            alt="{stoneConfig?.name || 'Stone'} {stone}"
+            loading="lazy"
+            onerror={(e) => {
+              // 이미지 로드 실패시 숨기기
+              const target = e.target as HTMLImageElement;
+              if (target) target.style.display = 'none';
+            }}
+          />
+        </div>
+      {/if}
+      
       <!-- 돌의 텍스처 -->
       {#if stoneConfig?.texture}
         <div class="stone-texture" style="background: {stoneConfig.texture}"></div>
@@ -69,6 +105,17 @@
       
       {#if isLastMove}
         <div class="last-move-marker"></div>
+      {/if}
+      
+      <!-- Custom shape SVG for organic Zerg style -->
+      {#if currentShape === 'custom' && stoneShapeConfig?.customShape === 'organic' && !stoneShapeConfig?.image}
+        <svg class="custom-shape-overlay" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50,10 C60,15 75,20 85,35 C90,50 85,70 70,80 C50,90 30,85 15,70 C5,50 10,30 25,20 C35,12 45,8 50,10 Z" 
+                fill="none" 
+                stroke="currentColor" 
+                stroke-width="2" 
+                opacity="0.3"/>
+        </svg>
       {/if}
     </div>
   {/if}
@@ -99,10 +146,33 @@
     position: relative;
     width: 85%;
     height: 85%;
-    border-radius: 50%;
     z-index: 3;
     transition: all 0.3s ease;
     animation: stone-place 0.4s ease-out;
+  }
+  
+  /* Shape variations */
+  .stone.shape-circle {
+    border-radius: 50%;
+  }
+  
+  .stone.shape-square {
+    border-radius: 8%;
+  }
+  
+  .stone.shape-diamond {
+    border-radius: 15%;
+    transform: rotate(45deg);
+  }
+  
+  .stone.shape-hexagon {
+    border-radius: 15%;
+    clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
+  }
+  
+  .stone.shape-custom {
+    border-radius: 35%;
+    clip-path: ellipse(45% 40% at 50% 50%);
   }
   
   .stone.black {
@@ -117,14 +187,54 @@
     box-shadow: var(--stone-white-shadow);
   }
   
+  .stone-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    clip-path: inherit;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+  
+  .stone-image img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    transition: all 0.3s ease;
+  }
+  
+  /* 이미지가 있는 경우 배경 투명도 조정 */
+  .stone:has(.stone-image) {
+    background: rgba(0, 0, 0, 0.1);
+  }
+  
   .stone-texture {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    border-radius: 50%;
     pointer-events: none;
+    border-radius: inherit;
+    clip-path: inherit;
+  }
+  
+  .custom-shape-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    color: currentColor;
+    opacity: 0.5;
   }
   
   .last-move-marker {
