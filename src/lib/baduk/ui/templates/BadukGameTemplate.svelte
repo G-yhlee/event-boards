@@ -2,6 +2,7 @@
   import BadukBoard from '../molecules/BadukBoard.svelte';
   import LeftPanel from '../organisms/LeftPanel.svelte';
   import RightPanel from '../organisms/RightPanel.svelte';
+  import InfluenceToggle from '../molecules/InfluenceToggle.svelte';
   import { BranchingEventStore, type Timeline } from '$lib/shared/infrastructure/event-store/BranchingEventStore';
   import { BadukCommandHandler, type StartGameCommand, type PlaceStoneCommand, type PassCommand, type ResignCommand } from '$lib/baduk/domain/commands/BadukCommandHandler';
   import { BadukAggregate, type GameState } from '$lib/baduk/domain/aggregates/BadukAggregate';
@@ -36,6 +37,7 @@
   let branches = $state<{ index: number; count: number }[]>([]);
   let currentBranchPoint = $state<number | undefined>(undefined);
   let lastMovePosition = $state<Position | undefined>(undefined);
+  let showInfluence = $state<boolean>(true);
   
   eventStore.subscribe((event) => {
     const allEvents = eventStore.getAllEvents();
@@ -278,6 +280,12 @@
   
   <!-- 중앙 게임 영역 -->
   <div class="center-area">
+    <div class="board-controls">
+      <InfluenceToggle 
+        {showInfluence}
+        onToggle={() => showInfluence = !showInfluence}
+      />
+    </div>
     <div class="board-container">
       <BadukBoard
         board={gameState.board}
@@ -285,6 +293,7 @@
         onIntersectionClick={handleIntersectionClick}
         {lastMovePosition}
         territories={gameState.territories}
+        {showInfluence}
       />
     </div>
   </div>
@@ -331,6 +340,15 @@
     flex-direction: column;
     background: #ffffff;
     transition: all 0.3s ease;
+  }
+  
+  .board-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #e1e5e9;
   }
   
   .board-container {

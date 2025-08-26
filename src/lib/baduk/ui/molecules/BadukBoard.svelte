@@ -10,6 +10,7 @@
     type StoneStyle,
     type BoardBackground 
   } from '../stores/themeStore';
+  import { calculateInfluenceMap, getAuraGradient, type InfluenceMap } from '../../utils/influenceMap';
   
   interface Props {
     board: Board;
@@ -17,6 +18,7 @@
     onIntersectionClick?: (position: Position) => void;
     lastMovePosition?: Position;
     territories?: Array<{ positions: Position[]; owner: string }>;
+    showInfluence?: boolean;
   }
   
   let { 
@@ -24,7 +26,8 @@
     boardSize, 
     onIntersectionClick, 
     lastMovePosition,
-    territories = []
+    territories = [],
+    showInfluence = true
   }: Props = $props();
   
   let selectedBlackStoneStyle = $state<StoneStyle>('japanese');
@@ -145,6 +148,14 @@
   const isStarPoint = (x: number, y: number): boolean => {
     return starPoints.has(`${x},${y}`);
   };
+  
+  // Calculate influence map when board changes
+  let influenceMap = $derived.by(() => {
+    if (showInfluence) {
+      return calculateInfluenceMap(board, boardSize);
+    }
+    return null;
+  });
 </script>
 
 <div class="board-container">
@@ -167,6 +178,35 @@
     <!-- Board texture overlay -->
     {#if boardConfig.texture}
       <div class="board-texture"></div>
+    {/if}
+    
+    <!-- Influence/Aura Layer -->
+    {#if showInfluence && influenceMap}
+      <div class="influence-layer">
+        {#each Array(boardSize) as _, y}
+          {#each Array(boardSize) as _, x}
+            {@const influence = influenceMap[y][x]}
+            {@const aura = getAuraGradient(influence, blackStoneConfig, whiteStoneConfig)}
+            {#if influence.owner !== 'neutral'}
+              <div 
+                class="influence-cell"
+                class:black-influence={influence.owner === 'black'}
+                class:white-influence={influence.owner === 'white'}
+                style="
+                  left: {x * cellSize}px;
+                  top: {y * cellSize}px;
+                  width: {cellSize}px;
+                  height: {cellSize}px;
+                  --aura-gradient: {aura.gradient};
+                  --aura-opacity: {aura.opacity};
+                  --aura-blur: {aura.blur}px;
+                  --aura-glow: {aura.glow};
+                "
+              ></div>
+            {/if}
+          {/each}
+        {/each}
+      </div>
     {/if}
     
     <!-- Grid lines -->
@@ -348,6 +388,52 @@
   .intersection-cell.territory-neutral {
     background: radial-gradient(circle, rgba(128, 128, 128, 0.1) 0%, transparent 70%);
     border-radius: 3px;
+  }
+  
+  /* Influence/Aura Layer Styles */
+  .influence-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(2px);
+  }
+  
+  .influence-cell {
+    position: absolute;
+    border-radius: 50%;
+    opacity: var(--aura-opacity);
+    transition: all 0.5s ease;
+    animation: pulse-aura 3s ease-in-out infinite;
+    background: var(--aura-gradient);
+  }
+  
+  .influence-cell.black-influence {
+    box-shadow: 
+      0 0 var(--aura-blur) var(--aura-glow),
+      0 0 calc(var(--aura-blur) * 2) var(--aura-glow),
+      inset 0 0 calc(var(--aura-blur) * 0.5) rgba(0, 0, 0, 0.2);
+  }
+  
+  .influence-cell.white-influence {
+    box-shadow: 
+      0 0 var(--aura-blur) var(--aura-glow),
+      0 0 calc(var(--aura-blur) * 1.5) var(--aura-glow),
+      inset 0 0 calc(var(--aura-blur) * 0.5) rgba(255, 255, 255, 0.3);
+  }
+  
+  @keyframes pulse-aura {
+    0%, 100% {
+      transform: scale(0.95);
+      opacity: calc(var(--aura-opacity) * 0.8);
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: var(--aura-opacity);
+    }
   }
   
   /* 반응형 디자인 */
